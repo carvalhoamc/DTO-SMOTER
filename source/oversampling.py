@@ -1,22 +1,19 @@
 import os
 from collections import Counter
-
+import glob
 import numpy as np
 import pandas as pd
 from imblearn.base import BaseSampler
 from imblearn.metrics import classification_report_imbalanced
 from imblearn.over_sampling import SMOTE, BorderlineSMOTE, SVMSMOTE
 from matplotlib import pyplot as plt
+from scipy.io.arff import loadarff
 from sklearn.decomposition import PCA
 from sklearn.manifold import Isomap
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.preprocessing import normalize
 
-from DelaunayMesh import DTO
-from classifiers import classifiers
-from datasetsDelaunay import datasets_list3_MultClasses, datasets
-from folders import output_dir, graph_folder, work_dir
 from parameters import projectors, order, alphas, train_smote_ext
 from gsmote import GeometricSMOTE
 import warnings
@@ -101,7 +98,7 @@ class Oversampling:
 
     def runDelaunayVariationsGen(self, folder):
 
-        for dataset in datasets:  # biclass e multiclass
+        for dataset in datasets:
             for fold in range(5):
                 path = os.path.join(folder, dataset, str(fold), ''.join([dataset, "_train.csv"]))
                 train = np.genfromtxt(path, delimiter=',')
@@ -225,18 +222,32 @@ class Oversampling:
         :param folder: Where datasets was stored
         :return:
         """
+        for filename in glob.glob(os.path.join(folder, '*.arff')):
+            print(filename)
+            raw_data = loadarff(filename)
+            df_data = pd.DataFrame(raw_data[0])
+            drop_na_col = True,  ## auto drop columns with nan's (bool)
+            drop_na_row = True,  ## auto drop rows with nan's (bool)
+             ## pre-process missing values
+            if bool(drop_na_col) == True:
+                df_data = df_data.dropna(axis=1)  ## drop columns with nan's
 
-        for dataset in datasets:  # biclass e multiclass
-            print(dataset)
-            fname = os.path.join(folder, ''.join([dataset, ".npz"]))
-            data = np.load(fname)
-            X = normalize(data['arr_0'])
-            Y = np.array(data['arr_1'])
-            skf = StratifiedKFold(n_splits=5, shuffle=True)
+            if bool(drop_na_row) == True:
+                df_data = df_data.dropna(axis=0)  ## drop rows with nan's
 
+            ## quality check for missing values in dataframe
+            if df_data.isnull().values.any():
+                raise ValueError("cannot proceed: data cannot contain NaN values")
+
+            df_data = df_data.select_dtypes(exclude=['object'])
+            Y = np.array(df_data.iloc[:,-1])
+            X = normalize(np.array(df_data.iloc[:,0:-1]))
+            skf = KFold(n_splits=5, shuffle=True)
+            dataset = filename.replace(folder, "")
+            dataset = dataset.replace('.arff','')
             for fold, (train_index, test_index) in enumerate(skf.split(X, Y)):
                 X_train, X_test = X[train_index], X[test_index]
-                y_train, y_test = data['arr_1'][train_index], data['arr_1'][test_index]
+                y_train, y_test = Y[train_index], Y[test_index]
                 y_train = y_train.reshape(len(y_train), 1)
                 y_test = y_test.reshape(len(y_test), 1)
                 train = pd.DataFrame(np.hstack((X_train, y_train)))
