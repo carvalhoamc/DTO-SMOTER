@@ -3,18 +3,16 @@ Based on: Synthetic Minority Over-Sampling Technique for Regression with Gaussia
 https://github.com/nickkunz/smogn
 '''
 
-
 ## load dependencies - third party
 import numpy as np
 import pandas as pd
 
-## load dependencies - internal
-from smogn.phi import phi
-from smogn.phi_ctrl_pts import phi_ctrl_pts
-
-
 ## synthetic minority over-sampling technique for regression with gaussian noise
-def smoter(
+from phi import phi
+from phi_ctrl_pts import phi_ctrl_pts
+
+
+def dtosmoter(
 		
 		## main arguments / inputs
 		data,  ## training set (pandas dataframe)

@@ -13,14 +13,14 @@ def main():
     folder_experiments = './../datasets/'
     dtosmoter = Oversampling()
     print('STEP 1')
-    dtosmoter.createValidationData(folder_experiments)
+    #dtosmoter.createValidationData(folder_experiments)
+    print('STEP 2')
+    dtosmoter.runSMOTEvariationsGen(folder_experiments)
     
-    '''print('STEP 2')
-    delaunaySMOTE.runSMOTEvariationsGen(folder_experiments)
-    print('STEP 3')
-    delaunaySMOTE.runDelaunayVariationsGen(folder_experiments)
+    '''print('STEP 3')
+    dtosmoter.runDelaunayVariationsGen(folder_experiments)
     print('STEP 4')
-    delaunaySMOTE.runClassification(folder_experiments, SMOTE=True)'''
+    dtosmoter.runClassification(folder_experiments, SMOTE=True)'''
 
     end = time.time()
     print("Total Execution Time : ")

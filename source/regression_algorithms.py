@@ -5,17 +5,17 @@ from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
-classifiers = {"RF": RandomForestRegressor(n_estimators=100),
-               "KNN": KNeighborsRegressor(),
+REGRESSION = {"RFR": RandomForestRegressor(n_estimators=100),
+               "KNNR": KNeighborsRegressor(),
                "RNR": RadiusNeighborsRegressor(),
                "LR": LinearRegression(),
                "LGR": LogisticRegression(),
                "ISOR": IsotonicRegression(),
-               "MLP": MLPRegressor(),
+               "MLPR": MLPRegressor(),
                "SVR":SVR(),
-               "SGD":SGDRegressor(),
+               "SGDR":SGDRegressor(),
                "ABR":AdaBoostRegressor(),
                "GBR":GradientBoostingRegressor()
                }
 
-classifiers_list = ['RF', 'KNN', 'RNR', 'LR', 'LGR', 'ISOR', 'MLP', 'SVR','SGD','ABR']
+classifiers_list = ['RFR', 'KNNR', 'RNR', 'LR', 'LGR', 'ISOR', 'MLPR', 'SVR','SGDR','ABR']
