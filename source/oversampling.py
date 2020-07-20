@@ -11,7 +11,8 @@ from matplotlib import pyplot as plt
 from scipy.io.arff import loadarff
 from sklearn.decomposition import PCA
 from sklearn.manifold import Isomap
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, r2_score, mean_absolute_error, mean_squared_error, max_error, \
+	mean_poisson_deviance, mean_gamma_deviance
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.preprocessing import normalize
 
@@ -159,108 +160,89 @@ class Oversampling:
 							data_r.columns = data_r.columns.astype(str)
 							colunas = list(data_r.columns)
 							y_name = colunas[-1]
-							delaunay = DTO(dataset, geometry=o,dirichlet=a)
+							delaunay = DTO(dataset, geometry=o, dirichlet=a)
 							name = "delaunay_" + p.__class__.__name__ + "_" + o + "_" + str(a)
-							dtoregression = dtosmoter(data=data_r,y=y_name,oversampler=delaunay)
+							dtoregression = dtosmoter(data=data_r, y=y_name, oversampler=delaunay)
 							dtoregression.to_csv(
 									os.path.join(folder, dataset, str(fold), ''.join([dataset, "_" + name + ".csv"])),
 									header=False, index=False)
-				
 	
-	def runClassification(self, folder, SMOTE=False):
-		print("INIT CLASSIFICATION IMBALANCED DATASETS")
-		dfcol = ['ID', 'DATASET', 'FOLD', 'PREPROC', 'ALGORITHM', 'MODE', 'ORDER', 'ALPHA', 'PRE', 'REC', 'SPE', 'F1',
-		         'GEO', 'IBA', 'AUC']
+	def runRegression(self, folder):
+		print("INIT REGRESSION DTO")
+		dfcol = ['ID', 'DATASET', 'FOLD', 'PREPROC', 'ALGORITHM', 'MODE', 'ORDER', 'ALPHA',
+		         'R2score',  # sklearn.metrics.r2_score
+		         'MAE',  # sklearn.metrics.mean_absolute_error
+		         'MSE',  # sklearn.metrics.mean_squared_error
+		         'MAX',  # sklearn.metrics.max_error
+		         ]
 		df = pd.DataFrame(columns=dfcol)
 		i = 0
-		
 		for dataset in datasets:
 			print(dataset)
 			for fold in range(5):
-				print(fold)
+				print('Fold: ', fold)
 				test_path = os.path.join(folder, dataset, str(fold), ''.join([dataset, "_test.csv"]))
 				test = np.genfromtxt(test_path, delimiter=',')
 				X_test = test[:, 0:test.shape[1] - 1]
 				Y_test = test[:, test.shape[1] - 1]
-				Y_test = self.converteY(Y_test)
+				# SMOTER REGRESSION
+				print("SMOTER REGRESSION")
+				for ext in train_smote_ext:
+					train_path = os.path.join(folder, dataset, str(fold), ''.join([dataset, ext, ".csv"]))
+					train = np.genfromtxt(train_path, delimiter=',')
+					X_train = train[:, 0:train.shape[1] - 1]
+					Y_train = train[:, train.shape[1] - 1]
+					for name, rgs in REGRESSION.items():
+						identificador = dataset + '_' + ext + '_' + name
+						print(identificador)
+						rgs.fit(X_train, Y_train)
+						Y_pred = rgs.predict(X_test)
+						df.at[i, 'ID'] = identificador
+						df.at[i, 'DATASET'] = dataset
+						df.at[i, 'FOLD'] = fold
+						df.at[i, 'PREPROC'] = ext
+						df.at[i, 'ALGORITHM'] = name
+						df.at[i, 'MODE'] = 'PCA'
+						df.at[i, 'ORDER'] = 'NONE'
+						df.at[i, 'ALPHA'] = 'NONE'
+						df.at[i, 'R2score'] = r2_score(Y_test, Y_pred)
+						df.at[i, 'MAE'] = mean_absolute_error(Y_test, Y_pred)
+						df.at[i, 'MSE'] = mean_squared_error(Y_test, Y_pred)
+						df.at[i, 'MAX'] = max_error(Y_test, Y_pred)
+						i = i + 1
 				
-				# SMOTE LIKE CLASSIFICATION
-				if SMOTE == True:
-					print("RUN SMOTE LIKE")
-					for ext in train_smote_ext:
-						train_path = os.path.join(folder, dataset, str(fold), ''.join([dataset, ext, ".csv"]))
-						train = np.genfromtxt(train_path, delimiter=',')
-						X_train = train[:, 0:train.shape[1] - 1]
-						Y_train = train[:, train.shape[1] - 1]
-						Y_train = self.converteY(Y_train)  # Biclass only
-						
-						if ext == "_train":
-							X, Y = X_train, Y_train  # original dataset for plotting
-						for name, clf in REGRESSION.items():
-							clf.fit(X_train, Y_train)
-							Y_pred = clf.predict(X_test)
-							res = classification_report_imbalanced(Y_test, Y_pred)
-							identificador = dataset + '_' + ext + '_' + name
-							aux = res.split()
-							score = aux[-7:-1]
-							df.at[i, 'ID'] = identificador
-							df.at[i, 'DATASET'] = dataset
-							df.at[i, 'FOLD'] = fold
-							df.at[i, 'PREPROC'] = ext
-							df.at[i, 'ALGORITHM'] = name
-							df.at[i, 'MODE'] = 'PCA'
-							df.at[i, 'ORDER'] = 'NONE'
-							df.at[i, 'ALPHA'] = 'NONE'
-							df.at[i, 'PRE'] = score[0]
-							df.at[i, 'REC'] = score[1]
-							df.at[i, 'SPE'] = score[2]
-							df.at[i, 'F1'] = score[3]
-							df.at[i, 'GEO'] = score[4]
-							df.at[i, 'IBA'] = score[5]
-							df.at[i, 'AUC'] = roc_auc_score(Y_test, Y_pred)  # biclass
-							# df.at[i, 'AUC'] = -1  # multiclass
-							
-							i = i + 1
-				
-				# DELAUNAY LIKE CLASSIFICATION
-				print("Run DTO")
+				# DTO-SMOTER REGRESSION
+				print("DTO-SMOTER REGRESSION")
 				for p in projectors:
 					for o in order:
 						for a in alphas:
 							id = "_delaunay_" + p.__class__.__name__ + "_" + o + "_" + str(a)
-							train_path = os.path.join(folder, dataset, str(fold), ''.join([dataset, id, ".csv"]))
+							train_path = os.path.join(folder, dataset, str(fold),
+							                          ''.join([dataset, id, ".csv"]))
 							train = np.genfromtxt(train_path, delimiter=',')
 							X_train = train[:, 0:train.shape[1] - 1]
 							Y_train = train[:, train.shape[1] - 1]
-							Y_train = self.converteY(Y_train)  # multiclass
-							for alg, clf in REGRESSION.items():
-								clf.fit(X_train, Y_train)
-								Y_pred = clf.predict(X_test)
-								res = classification_report_imbalanced(Y_test, Y_pred)
-								identificador = dataset + '_' + id + '_' + alg
-								aux = res.split()
-								score = aux[-7:-1]
+							for name, rgs in REGRESSION.items():
+								identificador = dataset + '_' + ext + '_' + name
+								print(identificador)
+								rgs.fit(X_train, Y_train)
+								Y_pred = rgs.predict(X_test)
 								df.at[i, 'ID'] = identificador
 								df.at[i, 'DATASET'] = dataset
 								df.at[i, 'FOLD'] = fold
 								df.at[i, 'PREPROC'] = '_delaunay' + "_" + o + "_" + str(a)
-								df.at[i, 'ALGORITHM'] = alg
+								df.at[i, 'ALGORITHM'] = name
 								df.at[i, 'MODE'] = p.__class__.__name__
 								df.at[i, 'ORDER'] = o
 								df.at[i, 'ALPHA'] = a
-								df.at[i, 'PRE'] = score[0]
-								df.at[i, 'REC'] = score[1]
-								df.at[i, 'SPE'] = score[2]
-								df.at[i, 'F1'] = score[3]
-								df.at[i, 'GEO'] = score[4]
-								df.at[i, 'IBA'] = score[5]
-								df.at[i, 'AUC'] = roc_auc_score(Y_test, Y_pred)  # biclass
-								# df.at[i, 'AUC'] = -1  # multiclass
+								df.at[i, 'R2score'] = r2_score(Y_test, Y_pred)
+								df.at[i, 'MAE'] = mean_absolute_error(Y_test, Y_pred)
+								df.at[i, 'MSE'] = mean_squared_error(Y_test, Y_pred)
+								df.at[i, 'MAX'] = max_error(Y_test, Y_pred)
 								i = i + 1
 			
-			df.to_csv(output_dir + 'results_biclass_' + p.__class__.__name__ + '.csv', index=False)
-			# df.to_csv(output_dir + 'results_multiclass_' + p.__class__.__name__ + '.csv', index=False)
-			print('DTO file on SSD')
+			df.to_csv('./../output/results_regression.csv', index=False)
+			print('DATA SAVED')
 	
 	def createValidationData(self, folder):
 		"""

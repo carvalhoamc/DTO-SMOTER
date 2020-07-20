@@ -15,11 +15,11 @@ def main():
     print('STEP 1')
     #dtosmoter.createValidationData(folder_experiments)
     print('STEP 2')
-    dtosmoter.runSMOTEvariationsGen(folder_experiments)
-    '''print('STEP 3')
-    dtosmoter.runDelaunayVariationsGen(folder_experiments)
+    #dtosmoter.runSMOTEvariationsGen(folder_experiments)
+    print('STEP 3')
+    #dtosmoter.runDelaunayVariationsGen(folder_experiments)
     print('STEP 4')
-    dtosmoter.runClassification(folder_experiments, SMOTE=True)'''
+    dtosmoter.runRegression(folder_experiments)
 
     end = time.time()
     print("Total Execution Time : ")
