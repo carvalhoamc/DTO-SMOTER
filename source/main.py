@@ -16,7 +16,6 @@ def main():
     #dtosmoter.createValidationData(folder_experiments)
     print('STEP 2')
     dtosmoter.runSMOTEvariationsGen(folder_experiments)
-    
     '''print('STEP 3')
     dtosmoter.runDelaunayVariationsGen(folder_experiments)
     print('STEP 4')

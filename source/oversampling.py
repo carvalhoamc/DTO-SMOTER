@@ -3,6 +3,7 @@ from collections import Counter
 import glob
 import numpy as np
 import pandas as pd
+from dtosmote import DTO
 from imblearn.base import BaseSampler
 from imblearn.metrics import classification_report_imbalanced
 from imblearn.over_sampling import SMOTE, BorderlineSMOTE, SVMSMOTE
@@ -144,25 +145,27 @@ class Oversampling:
 		
 		for dataset in datasets:
 			for fold in range(5):
-				path = os.path.join(folder, dataset, str(fold), ''.join([dataset, "_train.csv"]))
-				train = np.genfromtxt(path, delimiter=',')
-				X = train[:, 0:train.shape[1] - 1]
-				Y = train[:, train.shape[1] - 1]
-				print("DELAUNAY..." + dataset)
 				for p in projectors:
-					delaunay = DTO(p, dataset, pca_s=3)
 					for o in order:
 						for a in alphas:
+							path = os.path.join(folder, dataset, str(fold), ''.join([dataset, "_train.csv"]))
+							train = np.genfromtxt(path, delimiter=',')
+							X = train[:, 0:train.shape[1] - 1]
+							Y = train[:, train.shape[1] - 1]
+							Y = Y.reshape(len(Y), 1)
+							print("dtosmote..." + dataset)
+							data_r = np.hstack([X, Y])
+							data_r = pd.DataFrame(data_r)
+							data_r.columns = data_r.columns.astype(str)
+							colunas = list(data_r.columns)
+							y_name = colunas[-1]
+							delaunay = DTO(dataset, geometry=o,dirichlet=a)
 							name = "delaunay_" + p.__class__.__name__ + "_" + o + "_" + str(a)
-							delaunay.set_order(o)
-							delaunay.set_equal_alpha(a)
-							X_res, y_res = delaunay.fit_sample(X, Y)
-							y_res = y_res.reshape(len(y_res), 1)
-							newdata = np.hstack([X_res, y_res])
-							newtrain = pd.DataFrame(newdata)
-							newtrain.to_csv(
+							dtoregression = dtosmoter(data=data_r,y=y_name,oversampler=delaunay)
+							dtoregression.to_csv(
 									os.path.join(folder, dataset, str(fold), ''.join([dataset, "_" + name + ".csv"])),
 									header=False, index=False)
+				
 	
 	def runClassification(self, folder, SMOTE=False):
 		print("INIT CLASSIFICATION IMBALANCED DATASETS")
