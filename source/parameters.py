@@ -5,7 +5,8 @@ import numpy as np
 rank_dir = './../results/rank/'
 folder_experiments = './../datasets/'
 result_dir = './../results/'
-output_dir = './../output/'
+output_dir = './../output/media/'
+graphics_dir = './../output/graph/'
 # geometry
 order = [  # 'area',
 	# 'volume',

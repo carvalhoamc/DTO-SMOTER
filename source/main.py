@@ -28,9 +28,10 @@ def main():
     r = 'v1'
     
     analisys = Performance()
-    analisys.average_results(output_dir+'results_regression.csv',r)
-    analisys.run_rank_choose_parameters(result_dir+'regression_average_results_' + r + '.csv', release=r)
-    #analisys.grafico_variacao_alpha( release=r)
+    #analisys.average_results(output_dir+'results_regression.csv',r)
+    #analisys.run_rank_choose_parameters(result_dir+'regression_average_results_' + r + '.csv', release=r)
+    #analisys.grafico_variacao_alpha(r)
+    analisys.find_best_rank(output_dir,r)
     
     
 

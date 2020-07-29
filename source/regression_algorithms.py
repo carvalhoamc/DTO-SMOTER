@@ -15,4 +15,4 @@ REGRESSION = {"RFR": RandomForestRegressor(n_estimators=100),
               "GBR": GradientBoostingRegressor()
               }
 
-classifiers_list = ['RFR', 'KNNR', 'RNR', 'MLPR', 'SVR', 'SGDR', 'ABR', 'GBR']
+regression_list = ['RFR', 'KNNR', 'RNR', 'MLPR', 'SVR', 'SGDR', 'ABR', 'GBR']
