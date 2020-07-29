@@ -210,7 +210,7 @@ class Oversampling:
 						df.at[i, 'MSE'] = mean_squared_error(Y_test, Y_pred)
 						df.at[i, 'MAX'] = max_error(Y_test, Y_pred)
 						i = i + 1
-				
+				df.to_csv('./../output/results_regression.csv', index=False)
 				# DTO-SMOTER REGRESSION
 				print("DTO-SMOTER REGRESSION")
 				for p in projectors:
@@ -223,16 +223,15 @@ class Oversampling:
 							X_train = train[:, 0:train.shape[1] - 1]
 							Y_train = train[:, train.shape[1] - 1]
 							for name, rgs in REGRESSION.items():
-								identificador = dataset + '_' + ext + '_' + name
-								print(identificador)
+								print(id+'_'+name)
 								rgs.fit(X_train, Y_train)
 								Y_pred = rgs.predict(X_test)
-								df.at[i, 'ID'] = identificador
+								df.at[i, 'ID'] = id
 								df.at[i, 'DATASET'] = dataset
 								df.at[i, 'FOLD'] = fold
-								df.at[i, 'PREPROC'] = '_delaunay' + "_" + o + "_" + str(a)
+								df.at[i, 'PREPROC'] = '_dto_smoter_' + o + "_" + str(a)
 								df.at[i, 'ALGORITHM'] = name
-								df.at[i, 'MODE'] = p.__class__.__name__
+								df.at[i, 'MODE'] = 'PCA'
 								df.at[i, 'ORDER'] = o
 								df.at[i, 'ALPHA'] = a
 								df.at[i, 'R2score'] = r2_score(Y_test, Y_pred)
@@ -240,7 +239,8 @@ class Oversampling:
 								df.at[i, 'MSE'] = mean_squared_error(Y_test, Y_pred)
 								df.at[i, 'MAX'] = max_error(Y_test, Y_pred)
 								i = i + 1
-			
+				df.to_csv('./../output/results_regression.csv', index=False)
+				
 			df.to_csv('./../output/results_regression.csv', index=False)
 			print('DATA SAVED')
 	

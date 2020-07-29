@@ -1,5 +1,9 @@
 import time
+
+from graphs import Performance
 from oversampling import Oversampling
+from parameters import output_dir, result_dir, folder_experiments
+
 
 def timer(start, end):
     hours, rem = divmod(end - start, 3600)
@@ -10,16 +14,25 @@ def timer(start, end):
 def main():
     start = time.time()
     print('INIT')
-    folder_experiments = './../datasets/'
-    dtosmoter = Oversampling()
-    print('STEP 1')
+    
+    #dtosmoter = Oversampling()
+    #print('STEP 1')
     #dtosmoter.createValidationData(folder_experiments)
-    print('STEP 2')
+    #print('STEP 2')
     #dtosmoter.runSMOTEvariationsGen(folder_experiments)
-    print('STEP 3')
+    #print('STEP 3')
     #dtosmoter.runDelaunayVariationsGen(folder_experiments)
-    print('STEP 4')
-    dtosmoter.runRegression(folder_experiments)
+    #print('STEP 4')
+    #dtosmoter.runRegression(folder_experiments)
+    
+    r = 'v1'
+    
+    analisys = Performance()
+    analisys.average_results(output_dir+'results_regression.csv',r)
+    analisys.run_rank_choose_parameters(result_dir+'regression_average_results_' + r + '.csv', release=r)
+    #analisys.grafico_variacao_alpha( release=r)
+    
+    
 
     end = time.time()
     print("Total Execution Time : ")
