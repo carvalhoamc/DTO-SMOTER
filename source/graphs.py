@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from parameters import order, alphas, regression_measures, datasets, rank_dir, output_dir, graphics_dir
+from parameters import order, alphas, regression_measures, datasets, rank_dir, output_dir, graphics_dir, result_dir
 from regression_algorithms import regression_list
 
 results_dir = './../results/'
@@ -779,6 +779,7 @@ class Performance:
 		for f in results:
 			df_temp = pd.read_csv(results_dir + f)
 			df.at[i, 'ARQUIVO'] = f
+			print(f)
 			best = df_temp.index[df_temp['ALGORITHM'] == 'avarage'].tolist()
 			temp = df_temp.iloc[best[0], 1:-1]
 			temp = temp.sort_values()
@@ -786,7 +787,7 @@ class Performance:
 			df.at[i, 'WINER'] = temp.iloc[0, 0]
 			i += 1
 		
-		df.to_csv(output_dir + release+'_best_ranks.csv',index=False)
+		df.to_csv(result_dir + release+'_best_ranks.csv',index=False)
 	
 	def find_best_delaunay(self, results_dir, tipo):
 		df = pd.read_csv(results_dir + tipo)
